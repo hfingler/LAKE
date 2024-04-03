@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     #for i in range(3):
     #    print(f"Avg read for drive [{i}]: {statistics.mean(rd_lat_dev[i]):.2f}")
-    print (f"IO inter arrival time average {statistics.mean(inter_arrivals):.2f}us")
+    print (f"IO inter arrival time average: {statistics.mean(inter_arrivals):.2f} us")
 
 
     # count, x = np.histogram(inters, bins=500)
