@@ -26,6 +26,9 @@
 #include <thread>
 #include "replayer.hpp"
 
+// added 
+#include <mutex>
+
 struct Thread_arg {
     Trace *trace;
     uint32_t device;
@@ -33,15 +36,20 @@ struct Thread_arg {
     uint64_t start_ts;
 
     void (*executor)(TraceOp &trace_op, Trace *trace, uint32_t device, char* buf);
+    //int percent
 };
 
-
 void baseline_execute_op(TraceOp &trace_op, Trace *trace, uint32_t device, char* buf);
+void baseline_random_cancel_execute_op(TraceOp &trace_op, Trace *trace, uint32_t device, char* buf);
 void strawman_execute_op(TraceOp &trace_op, Trace *trace, uint32_t device, char* buf);
 void failover_execute_op(TraceOp &trace_op, Trace *trace, uint32_t device, char* buf);
+void failover_random_cancel_execute_op(TraceOp &trace_op, Trace *trace, uint32_t device, char* buf);
 void strawman_2ssds_execute_op(TraceOp &trace_op, Trace *trace, uint32_t device, char* buf);
 
 void* replayer_fn(void* arg);
-
+static uint64_t random_cancel_count = 0;
+static uint64_t total_count = 0;
+static uint64_t baseline_random_cancel_count = 0;
+static uint64_t baseline_total_count = 0;
 
 #endif

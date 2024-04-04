@@ -34,6 +34,10 @@
 #include <sys/ioctl.h>
 #include <pthread.h>
 
+// added
+#include <atomic>
+#include <cinttypes>
+
 #include "replayer.hpp"
 #include "op_replayers.hpp"
 
@@ -52,7 +56,7 @@ int main (int argc, char **argv)
     std::string devices_to_trace(argv[3]);
     int n_devices_to_trace = std::stoi(devices_to_trace);
     Trace trace(argv[4]);
-
+    printf("Number devices %d\n", n_devices_to_trace);
     for (int i=0; i < n_devices_to_trace ; i++) {
         printf("parsing trace %d\n", i);
         trace.parse_file(i, argv[5+i]);
@@ -72,13 +76,16 @@ int main (int argc, char **argv)
             targs[dev][j].trace = &trace;
             targs[dev][j].device = dev;
             targs[dev][j].sync_barrier = &sync_barrier;
-
-            if(type == "baseline")
+            if(type == "baseline") {
                 targs[dev][j].executor = baseline_execute_op;
-            else if (type == "strawman") {
+            } else if (type == "baseline_random_cancel") {
+                targs[dev][j].executor = baseline_random_cancel_execute_op;
+            } else if (type == "strawman") {
                 targs[dev][j].executor = strawman_execute_op;
             } else if (type == "failover") {
                 targs[dev][j].executor = failover_execute_op;
+            } else if (type == "failover_random_cancel") {
+                targs[dev][j].executor = failover_random_cancel_execute_op;
             } else if (type == "strawman2") {
                 targs[dev][j].executor = strawman_2ssds_execute_op;
             } else {
@@ -108,9 +115,12 @@ int main (int argc, char **argv)
     auto end = std::chrono::steady_clock::now();
     uint64_t elaps =  std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
 
-    printf("Trace took %lu seconds to finish.\n", elaps);
+    printf("Trace took %ld seconds to finish.\n", elaps);
+    // printf("Total number of read operations in failover: %" PRIu64 "\n", total_count);
+    // printf("Total number of randomly cancelled operations in failover: %" PRIu64 "\n", random_cancel_count);
 
     trace.print_stats();
+    // printf("Trace has %ld requests\n", trace->get_io_count(device));
 
     return 0;
 }
